@@ -288,5 +288,4 @@ public static class DataSeeder
         await userManager.CreateAsync(user, password);
         await userManager.AddToRoleAsync(user, role);
     }
-
 }
