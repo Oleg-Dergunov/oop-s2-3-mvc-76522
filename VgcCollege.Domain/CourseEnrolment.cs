@@ -1,11 +1,17 @@
-﻿namespace VgcCollege.Domain.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VgcCollege.Domain.Models;
 
 public enum EnrolmentStatus { Active, Withdrawn, Completed }
 
 public class CourseEnrolment
 {
     public int Id { get; set; }
-    public DateTime EnrolDate { get; set; }
+
+    [Required(ErrorMessage = "Enrol date is required")]
+    [Display(Name = "Enrol Date")]
+    public DateOnly EnrolDate { get; set; }
+
     public EnrolmentStatus Status { get; set; } = EnrolmentStatus.Active;
 
     public int StudentProfileId { get; set; }

@@ -1,0 +1,73 @@
+﻿@model VgcCollege.Domain.Models.CourseEnrolment
+
+@{
+    ViewData["Title"] = "Attendance";
+}
+
+<h1>Attendance</h1>
+<h4>@Model.StudentProfile?.Name — @Model.Course?.Name</h4>
+<hr />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Week</th>
+            <th>Date</th>
+            <th>Present</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var record in Model.AttendanceRecords.OrderBy(r => r.WeekNumber))
+        {
+            <tr>
+                <td>Week @record.WeekNumber</td>
+                <td>@record.Date</td>
+                <td>@(record.Present ? "Yes" : "No")</td>
+                <td>
+                    <form asp-action="Toggle" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@record.Id" />
+                        <input type="submit" value="Toggle" class="btn btn-sm btn-default" />
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Add Record</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AddRecord">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="enrolmentId" value="@Model.Id" />
+
+            <div class="form-group">
+                <label class="control-label">Week Number</label>
+                <input name="weekNumber" type="number" class="form-control" min="1" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">Date</label>
+                <input name="date" type="date" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">Present</label>
+                <select name="present" class="form-control">
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Add" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId">Back to Course</a>
+</div>

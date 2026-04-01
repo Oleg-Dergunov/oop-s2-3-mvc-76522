@@ -1,11 +1,22 @@
-﻿namespace VgcCollege.Domain.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VgcCollege.Domain.Models;
 
 public class Course
 {
     public int Id { get; set; }
+
+    [Required(ErrorMessage = "Course name is required")]
+    [StringLength(100)]
     public string Name { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+
+    [Required(ErrorMessage = "Start date is required")]
+    [Display(Name = "Start Date")]
+    public DateOnly StartDate { get; set; }
+
+    [Required(ErrorMessage = "End date is required")]
+    [Display(Name = "End Date")]
+    public DateOnly EndDate { get; set; }
 
     public int BranchId { get; set; }
     public Branch Branch { get; set; } = null!;

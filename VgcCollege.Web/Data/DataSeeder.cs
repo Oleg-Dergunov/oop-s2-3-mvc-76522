@@ -52,8 +52,8 @@ public static class DataSeeder
         context.FacultyProfiles.AddRange(faculty1, faculty2);
         await context.SaveChangesAsync();
 
-        var courseStart = new DateTime(2026, 1, 12);
-        var courseEnd = new DateTime(2026, 5, 31);
+        var courseStart = new DateOnly(2026, 1, 12);
+        var courseEnd = new DateOnly(2026, 5, 31);
 
         var cSoftware = new Course
         {
@@ -93,7 +93,7 @@ public static class DataSeeder
             Email = "student1@vgc.ie",
             Phone = "086-1111111",
             Address = "10 Main Street, Dublin 2",
-            DateOfBirth = new DateTime(2000, 3, 15),
+            DateOfBirth = new DateOnly(2000, 3, 15),
             StudentNumber = "STU001"
         };
         var student2 = new StudentProfile
@@ -103,7 +103,7 @@ public static class DataSeeder
             Email = "student2@vgc.ie",
             Phone = "086-2222222",
             Address = "20 High Street, Cork",
-            DateOfBirth = new DateTime(1999, 7, 22),
+            DateOfBirth = new DateOnly(1999, 7, 22),
             StudentNumber = "STU002"
         };
         var student3 = new StudentProfile
@@ -113,7 +113,7 @@ public static class DataSeeder
             Email = "student3@vgc.ie",
             Phone = "086-3333333",
             Address = "5 Shop Street, Galway",
-            DateOfBirth = new DateTime(2001, 11, 8),
+            DateOfBirth = new DateOnly(2001, 11, 8),
             StudentNumber = "STU003"
         };
         context.StudentProfiles.AddRange(student1, student2, student3);
@@ -123,28 +123,28 @@ public static class DataSeeder
         {
             StudentProfileId = student1.Id,
             CourseId = cSoftware.Id,
-            EnrolDate = new DateTime(2026, 1, 8),
+            EnrolDate = new DateOnly(2026, 1, 8),
             Status = EnrolmentStatus.Active
         };
         var enrol2 = new CourseEnrolment
         {
             StudentProfileId = student2.Id,
             CourseId = cSoftware.Id,
-            EnrolDate = new DateTime(2026, 1, 8),
+            EnrolDate = new DateOnly(2026, 1, 8),
             Status = EnrolmentStatus.Active
         };
         var enrol3 = new CourseEnrolment
         {
             StudentProfileId = student2.Id,
             CourseId = cData.Id,
-            EnrolDate = new DateTime(2026, 1, 9),
+            EnrolDate = new DateOnly(2026, 1, 9),
             Status = EnrolmentStatus.Active
         };
         var enrol4 = new CourseEnrolment
         {
             StudentProfileId = student3.Id,
             CourseId = cCyber.Id,
-            EnrolDate = new DateTime(2026, 1, 9),
+            EnrolDate = new DateOnly(2026, 1, 9),
             Status = EnrolmentStatus.Active
         };
         context.CourseEnrolments.AddRange(enrol1, enrol2, enrol3, enrol4);
@@ -183,21 +183,21 @@ public static class DataSeeder
         {
             Title = "OOP Fundamentals Report",
             MaxScore = 100,
-            DueDate = new DateTime(2026, 2, 20),
+            DueDate = new DateOnly(2026, 2, 20),
             CourseId = cSoftware.Id
         };
         var assign2 = new Assignment
         {
             Title = "Database Design Project",
             MaxScore = 100,
-            DueDate = new DateTime(2026, 3, 20),
+            DueDate = new DateOnly(2026, 3, 20),
             CourseId = cSoftware.Id
         };
         var assign3 = new Assignment
         {
             Title = "Network Security Analysis",
             MaxScore = 100,
-            DueDate = new DateTime(2026, 2, 27),
+            DueDate = new DateOnly(2026, 2, 27),
             CourseId = cCyber.Id
         };
         context.Assignments.AddRange(assign1, assign2, assign3);
@@ -231,7 +231,7 @@ public static class DataSeeder
         var exam1 = new Exam
         {
             Title = "Software Development — Semester 1 Exam",
-            Date = new DateTime(2026, 3, 10),
+            Date = new DateOnly(2026, 3, 10),
             MaxScore = 100,
             ResultsReleased = true,
             CourseId = cSoftware.Id
@@ -239,7 +239,7 @@ public static class DataSeeder
         var exam2 = new Exam
         {
             Title = "Cybersecurity — Semester 1 Exam",
-            Date = new DateTime(2026, 3, 15),
+            Date = new DateOnly(2026, 3, 15),
             MaxScore = 100,
             ResultsReleased = false,
             CourseId = cCyber.Id
