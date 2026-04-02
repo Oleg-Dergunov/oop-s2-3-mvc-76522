@@ -13,7 +13,14 @@
     <dd>@Model.Branch?.Name</dd>
 
     <dt>Faculty</dt>
-    <dd>@Model.FacultyProfile?.Name</dd>
+    <dd>
+        @Model.FacultyProfile?.Name
+        @if (User.IsInRole("Admin") && Model.FacultyProfile != null)
+        {
+            <a asp-controller="FacultyProfile" asp-action="Details"
+               asp-route-id="@Model.FacultyProfileId">Profile</a>
+        }
+    </dd>
 
     <dt>@Html.DisplayNameFor(m => m.StartDate)</dt>
     <dd>@Html.DisplayFor(m => m.StartDate)</dd>

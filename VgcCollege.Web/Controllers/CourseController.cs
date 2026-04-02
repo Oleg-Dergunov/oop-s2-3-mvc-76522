@@ -98,6 +98,9 @@ public class CourseController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Course model)
     {
+        ModelState.Remove("Branch");
+        ModelState.Remove("FacultyProfile");
+
         if (!ModelState.IsValid)
         {
             ViewBag.Branches = new SelectList(
@@ -131,6 +134,9 @@ public class CourseController : Controller
     public async Task<IActionResult> Edit(int id, Course model)
     {
         if (id != model.Id) return BadRequest();
+
+        ModelState.Remove("Branch");
+        ModelState.Remove("FacultyProfile");
 
         if (!ModelState.IsValid)
         {

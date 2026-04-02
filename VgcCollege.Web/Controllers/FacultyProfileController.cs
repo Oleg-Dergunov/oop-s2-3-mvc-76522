@@ -8,13 +8,13 @@ using VgcCollege.Web.Models;
 
 namespace VgcCollege.Web.Controllers;
 
-[Authorize]
-public class StudentProfileController : Controller
+[Authorize(Roles = "Admin,Faculty")]
+public class FacultyProfileController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<IdentityUser> _userManager;
 
-    public StudentProfileController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    public FacultyProfileController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
         _context = context;
         _userManager = userManager;
@@ -23,34 +23,20 @@ public class StudentProfileController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
-        var students = await _context.StudentProfiles.ToListAsync();
-        return View(students);
+        var faculty = await _context.FacultyProfiles.ToListAsync();
+        return View(faculty);
     }
 
-    [Authorize(Roles = "Admin,Faculty")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Details(int id)
     {
-        var student = await _context.StudentProfiles
-            .Include(s => s.Enrolments)
-                .ThenInclude(e => e.Course)
-            .FirstOrDefaultAsync(s => s.Id == id);
+        var faculty = await _context.FacultyProfiles
+            .Include(f => f.Courses)
+                .ThenInclude(c => c.Branch)
+            .FirstOrDefaultAsync(f => f.Id == id);
 
-        if (student == null) return NotFound();
-
-        if (User.IsInRole("Faculty"))
-        {
-            var facultyUser = await _userManager.GetUserAsync(User);
-            var faculty = await _context.FacultyProfiles
-                .FirstOrDefaultAsync(f => f.IdentityUserId == facultyUser!.Id);
-
-            var isMyStudent = await _context.CourseEnrolments
-                .AnyAsync(e => e.StudentProfileId == id &&
-                               _context.Courses.Any(c => c.Id == e.CourseId && c.FacultyProfileId == faculty!.Id));
-
-            if (!isMyStudent) return Forbid();
-        }
-
-        return View(student);
+        if (faculty == null) return NotFound();
+        return View(faculty);
     }
 
     [Authorize(Roles = "Admin")]
@@ -59,10 +45,10 @@ public class StudentProfileController : Controller
         return View();
     }
 
-    [HttpPost]
     [Authorize(Roles = "Admin")]
+    [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateStudentViewModel model)
+    public async Task<IActionResult> Create(CreateFacultyViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
 
@@ -88,21 +74,17 @@ public class StudentProfileController : Controller
             return View(model);
         }
 
-        await _userManager.AddToRoleAsync(user, "Student");
+        await _userManager.AddToRoleAsync(user, "Faculty");
 
-        var count = await _context.StudentProfiles.CountAsync();
-        var profile = new StudentProfile
+        var profile = new FacultyProfile
         {
             IdentityUserId = user.Id,
             Name = model.Name,
             Email = model.Email,
-            Phone = model.Phone,
-            Address = model.Address,
-            DateOfBirth = model.DateOfBirth,
-            StudentNumber = $"STU{(count + 1):D3}"
+            Phone = model.Phone
         };
 
-        _context.StudentProfiles.Add(profile);
+        _context.FacultyProfiles.Add(profile);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
@@ -110,45 +92,42 @@ public class StudentProfileController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
-        var student = await _context.StudentProfiles.FindAsync(id);
-        if (student == null) return NotFound();
-        return View(student);
+        var faculty = await _context.FacultyProfiles.FindAsync(id);
+        if (faculty == null) return NotFound();
+        return View(faculty);
     }
 
-    [HttpPost]
     [Authorize(Roles = "Admin")]
+    [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, StudentProfile model)
+    public async Task<IActionResult> Edit(int id, FacultyProfile model)
     {
         if (id != model.Id) return BadRequest();
 
-        ModelState.Remove("StudentNumber");
         ModelState.Remove("IdentityUserId");
 
         if (!ModelState.IsValid) return View(model);
 
-        var existing = await _context.StudentProfiles.FindAsync(id);
+        var existing = await _context.FacultyProfiles.FindAsync(id);
         if (existing == null) return NotFound();
 
         existing.Name = model.Name;
         existing.Phone = model.Phone;
-        existing.Address = model.Address;
-        existing.DateOfBirth = model.DateOfBirth;
 
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 
-    [Authorize(Roles = "Student")]
+    [Authorize(Roles = "Faculty")]
     public async Task<IActionResult> MyProfile()
     {
         var user = await _userManager.GetUserAsync(User);
-        var student = await _context.StudentProfiles
-            .Include(s => s.Enrolments)
-                .ThenInclude(e => e.Course)
-            .FirstOrDefaultAsync(s => s.IdentityUserId == user!.Id);
+        var faculty = await _context.FacultyProfiles
+            .Include(f => f.Courses)
+                .ThenInclude(c => c.Branch)
+            .FirstOrDefaultAsync(f => f.IdentityUserId == user!.Id);
 
-        if (student == null) return NotFound();
-        return View(student);
+        if (faculty == null) return NotFound();
+        return View(faculty);
     }
 }
