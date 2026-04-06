@@ -42,8 +42,14 @@ public class AttendanceController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddRecord(int enrolmentId, int weekNumber, DateOnly date, bool present)
+    public async Task<IActionResult> AddRecord(int enrolmentId, int weekNumber, DateOnly date, AttendanceStatus status)
     {
+        if (date > DateOnly.FromDateTime(DateTime.Today))
+        {
+            TempData["Error"] = "Cannot add attendance for a future date.";
+            return RedirectToAction(nameof(ByCourse), new { id = enrolmentId });
+        }
+
         var exists = await _context.AttendanceRecords
             .AnyAsync(a => a.CourseEnrolmentId == enrolmentId && a.WeekNumber == weekNumber);
 
@@ -54,7 +60,7 @@ public class AttendanceController : Controller
                 CourseEnrolmentId = enrolmentId,
                 WeekNumber = weekNumber,
                 Date = date,
-                Present = present
+                Status = status
             });
             await _context.SaveChangesAsync();
         }
@@ -64,12 +70,12 @@ public class AttendanceController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Toggle(int id)
+    public async Task<IActionResult> UpdateStatus(int id, AttendanceStatus status)
     {
         var record = await _context.AttendanceRecords.FindAsync(id);
         if (record == null) return NotFound();
 
-        record.Present = !record.Present;
+        record.Status = status;
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(ByCourse), new { id = record.CourseEnrolmentId });

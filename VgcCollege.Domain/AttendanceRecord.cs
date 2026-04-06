@@ -2,6 +2,8 @@
 
 namespace VgcCollege.Domain.Models;
 
+public enum AttendanceStatus { Present, Absent, NA }
+
 public class AttendanceRecord
 {
     public int Id { get; set; }
@@ -13,7 +15,7 @@ public class AttendanceRecord
     [Required]
     public DateOnly Date { get; set; }
 
-    public bool Present { get; set; }
+    public AttendanceStatus Status { get; set; } = AttendanceStatus.Absent;
 
     public int CourseEnrolmentId { get; set; }
     public CourseEnrolment CourseEnrolment { get; set; } = null!;

@@ -38,14 +38,14 @@ public static class DataSeeder
         var faculty1 = new FacultyProfile
         {
             IdentityUserId = f1User!.Id,
-            Name = "Faculty1 User",
+            Name = "Faculty1",
             Email = "faculty1@vgc.ie",
             Phone = "087-1111111"
         };
         var faculty2 = new FacultyProfile
         {
             IdentityUserId = f2User!.Id,
-            Name = "Faculty2 User",
+            Name = "Faculty2",
             Email = "faculty2@vgc.ie",
             Phone = "087-2222222"
         };
@@ -89,7 +89,7 @@ public static class DataSeeder
         var student1 = new StudentProfile
         {
             IdentityUserId = s1User!.Id,
-            Name = "Student1 User",
+            Name = "Student1",
             Email = "student1@vgc.ie",
             Phone = "086-1111111",
             Address = "10 Main Street, Dublin 2",
@@ -99,7 +99,7 @@ public static class DataSeeder
         var student2 = new StudentProfile
         {
             IdentityUserId = s2User!.Id,
-            Name = "Student2 User",
+            Name = "Student2",
             Email = "student2@vgc.ie",
             Phone = "086-2222222",
             Address = "20 High Street, Cork",
@@ -109,7 +109,7 @@ public static class DataSeeder
         var student3 = new StudentProfile
         {
             IdentityUserId = s3User!.Id,
-            Name = "Student3 User",
+            Name = "Student3",
             Email = "student3@vgc.ie",
             Phone = "086-3333333",
             Address = "5 Shop Street, Galway",
@@ -150,31 +150,31 @@ public static class DataSeeder
         context.CourseEnrolments.AddRange(enrol1, enrol2, enrol3, enrol4);
         await context.SaveChangesAsync();
 
-        var attendanceData = new List<(CourseEnrolment enrol, int week, DateOnly date, bool present)>
+        var attendanceData = new List<(CourseEnrolment enrol, int week, DateOnly date, AttendanceStatus status)>
         {
-            (enrol1, 1, new DateOnly(2026, 1, 12), true),
-            (enrol1, 2, new DateOnly(2026, 1, 19), true),
-            (enrol1, 3, new DateOnly(2026, 1, 26), true),
-            (enrol1, 4, new DateOnly(2026, 2, 2),  false),
+            (enrol1, 1, new DateOnly(2026, 1, 12), AttendanceStatus.Present),
+            (enrol1, 2, new DateOnly(2026, 1, 19), AttendanceStatus.Present),
+            (enrol1, 3, new DateOnly(2026, 1, 26), AttendanceStatus.Present),
+            (enrol1, 4, new DateOnly(2026, 2, 2),  AttendanceStatus.Absent),
 
-            (enrol2, 1, new DateOnly(2026, 1, 12), true),
-            (enrol2, 2, new DateOnly(2026, 1, 19), false),
-            (enrol2, 3, new DateOnly(2026, 1, 26), true),
-            (enrol2, 4, new DateOnly(2026, 2, 2),  true),
+            (enrol2, 1, new DateOnly(2026, 1, 12), AttendanceStatus.Present),
+            (enrol2, 2, new DateOnly(2026, 1, 19), AttendanceStatus.NA),
+            (enrol2, 3, new DateOnly(2026, 1, 26), AttendanceStatus.Present),
+            (enrol2, 4, new DateOnly(2026, 2, 2),  AttendanceStatus.Present),
 
-            (enrol4, 1, new DateOnly(2026, 1, 12), true),
-            (enrol4, 2, new DateOnly(2026, 1, 19), true),
-            (enrol4, 3, new DateOnly(2026, 1, 26), false),
-            (enrol4, 4, new DateOnly(2026, 2, 2),  true),
+            (enrol4, 1, new DateOnly(2026, 1, 12), AttendanceStatus.Present),
+            (enrol4, 2, new DateOnly(2026, 1, 19), AttendanceStatus.Present),
+            (enrol4, 3, new DateOnly(2026, 1, 26), AttendanceStatus.NA),
+            (enrol4, 4, new DateOnly(2026, 2, 2),  AttendanceStatus.Present),
         };
-        foreach (var (enrol, week, date, present) in attendanceData)
+        foreach (var (enrol, week, date, status) in attendanceData)
         {
             context.AttendanceRecords.Add(new AttendanceRecord
             {
                 CourseEnrolmentId = enrol.Id,
                 WeekNumber = week,
                 Date = date,
-                Present = present
+                Status = status
             });
         }
         await context.SaveChangesAsync();
@@ -188,9 +188,9 @@ public static class DataSeeder
         };
         var assign2 = new Assignment
         {
-            Title = "Database Design Project",
+            Title = "Web Application Project",
             MaxScore = 100,
-            DueDate = new DateOnly(2026, 3, 20),
+            DueDate = new DateOnly(2026, 4, 20),
             CourseId = cSoftware.Id
         };
         var assign3 = new Assignment

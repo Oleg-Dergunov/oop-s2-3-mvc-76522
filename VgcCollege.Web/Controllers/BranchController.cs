@@ -1,12 +1,69 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using VgcCollege.Domain.Models;
+using VgcCollege.Web.Data;
 
-namespace VgcCollege.Web.Controllers
+namespace VgcCollege.Web.Controllers;
+
+[Authorize(Roles = "Admin")]
+public class BranchController : Controller
 {
-    public class BranchController : Controller
+    private readonly ApplicationDbContext _context;
+
+    public BranchController(ApplicationDbContext context)
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        _context = context;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        return View(await _context.Branches.ToListAsync());
+    }
+
+    public async Task<IActionResult> Details(int id)
+    {
+        var branch = await _context.Branches
+            .Include(b => b.Courses)
+                .ThenInclude(c => c.FacultyProfile)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (branch == null) return NotFound();
+        return View(branch);
+    }
+
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Branch model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        _context.Branches.Add(model);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Edit(int id)
+    {
+        var branch = await _context.Branches.FindAsync(id);
+        if (branch == null) return NotFound();
+        return View(branch);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, Branch model)
+    {
+        if (id != model.Id) return BadRequest();
+        if (!ModelState.IsValid) return View(model);
+
+        _context.Update(model);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
     }
 }
