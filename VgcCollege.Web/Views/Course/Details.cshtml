@@ -79,9 +79,12 @@
                         <a asp-controller="Attendance" asp-action="ByCourse"
                            asp-route-id="@enrolment.Id">Attendance</a>
                         <span> | </span>
-                            <a asp-controller="Assignment" asp-action="ByCourse"
-                               asp-route-courseId="@Model.Id">Assignments</a>
-                        </td>
+                        <a asp-controller="Assignment" asp-action="ByCourse"
+                            asp-route-courseId="@Model.Id">Assignments</a>
+                        <span> | </span>
+                        <a asp-controller="Exam" asp-action="ByCourse"
+                           asp-route-courseId="@Model.Id">Exams</a>
+                    </td>
                 </tr>
             }
         </tbody>
