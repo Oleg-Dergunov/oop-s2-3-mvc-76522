@@ -52,6 +52,8 @@ public class ExamController : Controller
 
         ViewBag.CourseName = course.Name;
         ViewBag.CourseId = courseId;
+        ViewBag.CourseStart = course.StartDate.ToString("yyyy-MM-dd");
+        ViewBag.CourseEnd = course.EndDate.ToString("yyyy-MM-dd");
         return View();
     }
 
@@ -78,6 +80,8 @@ public class ExamController : Controller
         {
             ViewBag.CourseName = course?.Name;
             ViewBag.CourseId = model.CourseId;
+            ViewBag.CourseStart = course?.StartDate.ToString("yyyy-MM-dd");
+            ViewBag.CourseEnd = course?.EndDate.ToString("yyyy-MM-dd");
             return View(model);
         }
 
@@ -102,6 +106,8 @@ public class ExamController : Controller
             if (exam.Course.FacultyProfileId != faculty!.Id) return Forbid();
         }
 
+        ViewBag.CourseStart = exam.Course.StartDate.ToString("yyyy-MM-dd");
+        ViewBag.CourseEnd = exam.Course.EndDate.ToString("yyyy-MM-dd");
         return View(exam);
     }
 
@@ -136,7 +142,12 @@ public class ExamController : Controller
             ModelState.AddModelError("MaxScore",
                 $"MaxScore cannot be less than existing scores. Highest score: {maxExistingScore}.");
 
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+        {
+            ViewBag.CourseStart = existing.Course.StartDate.ToString("yyyy-MM-dd");
+            ViewBag.CourseEnd = existing.Course.EndDate.ToString("yyyy-MM-dd");
+            return View(model);
+        }
 
         existing.Title = model.Title;
         existing.Date = model.Date;
