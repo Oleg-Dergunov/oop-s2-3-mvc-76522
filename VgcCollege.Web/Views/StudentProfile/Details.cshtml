@@ -21,8 +21,11 @@
     <dt>@Html.DisplayNameFor(m => m.Address)</dt>
     <dd>@Html.DisplayFor(m => m.Address)</dd>
 
-    <dt>@Html.DisplayNameFor(m => m.DateOfBirth)</dt>
-    <dd>@Html.DisplayFor(m => m.DateOfBirth)</dd>
+    @if (User.IsInRole("Admin"))
+    {
+        <dt>@Html.DisplayNameFor(m => m.DateOfBirth)</dt>
+        <dd>@Html.DisplayFor(m => m.DateOfBirth)</dd>
+    }
 </dl>
 
 <h4>Enrolments</h4>
@@ -55,8 +58,16 @@
 </table>
 
 <br />
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-    <span> | </span>
-    <a asp-action="Index">Back to List</a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <span> | </span>
+        <a asp-action="Index">Back to List</a>
+    }
+    else
+    {
+        <a asp-controller="Course" asp-action="Index">Back to My Courses</a>
+    }
 </div>

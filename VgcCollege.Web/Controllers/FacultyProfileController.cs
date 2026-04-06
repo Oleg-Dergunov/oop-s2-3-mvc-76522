@@ -105,15 +105,23 @@ public class FacultyProfileController : Controller
         if (id != model.Id) return BadRequest();
 
         ModelState.Remove("IdentityUserId");
+        ModelState.Remove("Email");
 
         if (!ModelState.IsValid) return View(model);
 
         var existing = await _context.FacultyProfiles.FindAsync(id);
         if (existing == null) return NotFound();
 
+        var duplicatePhone = await _context.FacultyProfiles
+            .AnyAsync(f => f.Phone == model.Phone && f.Id != id);
+        if (duplicatePhone)
+        {
+            ModelState.AddModelError("Phone", "Another faculty member already has this phone number.");
+            return View(model);
+        }
+
         existing.Name = model.Name;
         existing.Phone = model.Phone;
-
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }

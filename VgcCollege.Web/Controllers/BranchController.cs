@@ -43,6 +43,14 @@ public class BranchController : Controller
     {
         if (!ModelState.IsValid) return View(model);
 
+        var duplicate = await _context.Branches
+            .AnyAsync(b => b.Name == model.Name);
+        if (duplicate)
+        {
+            ModelState.AddModelError("Name", "A branch with this name already exists.");
+            return View(model);
+        }
+
         _context.Branches.Add(model);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
@@ -60,7 +68,16 @@ public class BranchController : Controller
     public async Task<IActionResult> Edit(int id, Branch model)
     {
         if (id != model.Id) return BadRequest();
+
         if (!ModelState.IsValid) return View(model);
+
+        var duplicate = await _context.Branches
+            .AnyAsync(b => b.Name == model.Name && b.Id != id);
+        if (duplicate)
+        {
+            ModelState.AddModelError("Name", "A branch with this name already exists.");
+            return View(model);
+        }
 
         _context.Update(model);
         await _context.SaveChangesAsync();
