@@ -15,7 +15,27 @@ namespace VgcCollege.Web.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index", "Course");
+            }
+
+            if (User.IsInRole("Faculty"))
+            {
+                return RedirectToAction("Index", "Course");
+            }
+
+            if (User.IsInRole("Student"))
+            {
+                return RedirectToAction("Index", "Course");
+            }
+
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
 
         public IActionResult Privacy()

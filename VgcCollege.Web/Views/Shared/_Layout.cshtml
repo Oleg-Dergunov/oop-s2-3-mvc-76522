@@ -19,13 +19,7 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-
+                        
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
@@ -48,20 +42,20 @@
                         @if (User.IsInRole("Faculty"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Course" asp-action="Index">My Courses</a>
+                                <a class="nav-link text-dark" asp-controller="Course" asp-action="Index">Courses</a>
                             </li>
                         }
 
                         @if (User.IsInRole("Student"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Course" asp-action="Index">My Courses</a>
+                                <a class="nav-link text-dark" asp-controller="Course" asp-action="Index">Courses</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Assignment" asp-action="MyResults">My Results</a>
+                                <a class="nav-link text-dark" asp-controller="Assignment" asp-action="MyResults">Assignments</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Exam" asp-action="MyResults">My Exam Results</a>
+                                <a class="nav-link text-dark" asp-controller="Exam" asp-action="MyResults">Exams</a>
                             </li>
                         }
                     </ul>
