@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using VgcCollege.Domain.Helpers;
 using VgcCollege.Domain.Models;
 using VgcCollege.Web.Data;
 
@@ -76,6 +76,60 @@ public class AssignmentController : Controller
     }
 
     [Authorize(Roles = "Admin,Faculty")]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var assignment = await _context.Assignments
+            .Include(a => a.Course)
+            .FirstOrDefaultAsync(a => a.Id == id);
+        if (assignment == null) return NotFound();
+
+        if (User.IsInRole("Faculty"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var faculty = await _context.FacultyProfiles
+                .FirstOrDefaultAsync(f => f.IdentityUserId == user!.Id);
+            if (assignment.Course.FacultyProfileId != faculty!.Id) return Forbid();
+        }
+
+        return View(assignment);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin,Faculty")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, Assignment model)
+    {
+        if (id != model.Id) return BadRequest();
+
+        ModelState.Remove("Course");
+        ModelState.Remove("Results");
+
+        if (!ModelState.IsValid) return View(model);
+
+        var existing = await _context.Assignments
+            .Include(a => a.Results)
+            .FirstOrDefaultAsync(a => a.Id == id);
+        if (existing == null) return NotFound();
+
+        var maxExistingScore = existing.Results.Any()
+            ? existing.Results.Max(r => r.Score)
+            : 0;
+
+        if (model.MaxScore < maxExistingScore)
+        {
+            ModelState.AddModelError("MaxScore",
+                $"MaxScore cannot be less than existing scores. Highest score: {maxExistingScore}.");
+            return View(model);
+        }
+
+        existing.Title = model.Title;
+        existing.DueDate = model.DueDate;
+        existing.MaxScore = model.MaxScore;
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(ByCourse), new { courseId = existing.CourseId });
+    }
+
+    [Authorize(Roles = "Admin,Faculty")]
     public async Task<IActionResult> Results(int assignmentId)
     {
         var assignment = await _context.Assignments
@@ -100,6 +154,10 @@ public class AssignmentController : Controller
             .ToListAsync();
 
         ViewBag.Enrolled = enrolled;
+
+        if (TempData["Error"] is string error)
+            ModelState.AddModelError("", error);
+
         return View(assignment);
     }
 
@@ -108,6 +166,15 @@ public class AssignmentController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveResult(int assignmentId, int studentProfileId, int score, string? feedback)
     {
+        var assignment = await _context.Assignments.FindAsync(assignmentId);
+        if (assignment == null) return NotFound();
+
+        if (score < 0 || score > assignment.MaxScore)
+        {
+            TempData["Error"] = $"Score must be between 0 and {assignment.MaxScore}.";
+            return RedirectToAction(nameof(Results), new { assignmentId });
+        }
+
         var existing = await _context.AssignmentResults
             .FirstOrDefaultAsync(r => r.AssignmentId == assignmentId
                                    && r.StudentProfileId == studentProfileId);

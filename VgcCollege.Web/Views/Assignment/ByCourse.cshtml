@@ -30,12 +30,15 @@
                 <td>@Html.DisplayFor(m => item.DueDate)</td>
                 <td>
                     <a asp-action="Results" asp-route-assignmentId="@item.Id">Gradebook</a>
+                    <span> | </span>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
+<br />
 <div>
     <a asp-controller="Course" asp-action="Details" asp-route-id="@ViewBag.CourseId">Back to Course</a>
 </div>
