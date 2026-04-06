@@ -8,6 +8,15 @@
 <h4>@Model.Title — @Model.Course?.Name</h4>
 <p>Max Score: @Model.MaxScore | Due: @Model.DueDate</p>
 <hr />
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="text-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
 
 <table>
     <thead>

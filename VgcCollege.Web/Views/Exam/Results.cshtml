@@ -19,6 +19,16 @@
 </p>
 <hr />
 
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="text-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
 <table>
     <thead>
         <tr>
@@ -44,7 +54,7 @@
                            value="@(result?.Score ?? 0)" />
                 </td>
                 <td>
-                    <span>@(result?.Grade ?? "")</span>
+                    <span>@(result?.Grade ?? "-")</span>
                 </td>
                 <td>
                     <input type="submit" value="Save" class="btn btn-sm btn-primary" />
