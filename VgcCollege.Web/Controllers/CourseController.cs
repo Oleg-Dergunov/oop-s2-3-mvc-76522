@@ -80,6 +80,9 @@ public class CourseController : Controller
         {
             ViewBag.AllStudents = new SelectList(
                 await _context.StudentProfiles.ToListAsync(), "Id", "Name");
+
+            if (TempData["Error"] is string error)
+                ViewBag.Error = error;
         }
 
         return View(course);
@@ -105,6 +108,11 @@ public class CourseController : Controller
 
         if (model.EndDate <= model.StartDate)
             ModelState.AddModelError("EndDate", "End date must be after start date.");
+
+        var duplicate = await _context.Courses
+            .AnyAsync(c => c.Name == model.Name && c.BranchId == model.BranchId);
+        if (duplicate)
+            ModelState.AddModelError("Name", "A course with this name already exists in this branch.");
 
         if (!ModelState.IsValid)
         {
@@ -146,6 +154,11 @@ public class CourseController : Controller
         if (model.EndDate <= model.StartDate)
             ModelState.AddModelError("EndDate", "End date must be after start date.");
 
+        var duplicate = await _context.Courses
+            .AnyAsync(c => c.Name == model.Name && c.BranchId == model.BranchId && c.Id != id);
+        if (duplicate)
+            ModelState.AddModelError("Name", "A course with this name already exists in this branch.");
+
         if (!ModelState.IsValid)
         {
             ViewBag.Branches = new SelectList(
@@ -178,17 +191,20 @@ public class CourseController : Controller
             .AnyAsync(e => e.StudentProfileId == studentProfileId
                         && e.CourseId == courseId);
 
-        if (!alreadyEnrolled)
+        if (alreadyEnrolled)
         {
-            _context.CourseEnrolments.Add(new CourseEnrolment
-            {
-                CourseId = courseId,
-                StudentProfileId = studentProfileId,
-                EnrolDate = DateOnly.FromDateTime(DateTime.Today),
-                Status = EnrolmentStatus.Active
-            });
-            await _context.SaveChangesAsync();
+            TempData["Error"] = "This student is already enrolled in this course.";
+            return RedirectToAction(nameof(Details), new { id = courseId });
         }
+
+        _context.CourseEnrolments.Add(new CourseEnrolment
+        {
+            CourseId = courseId,
+            StudentProfileId = studentProfileId,
+            EnrolDate = DateOnly.FromDateTime(DateTime.Today),
+            Status = EnrolmentStatus.Active
+        });
+        await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Details), new { id = courseId });
     }

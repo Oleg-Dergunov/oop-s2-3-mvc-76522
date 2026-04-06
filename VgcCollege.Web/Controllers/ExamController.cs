@@ -76,6 +76,12 @@ public class ExamController : Controller
                     $"Exam date cannot be after course end date ({course.EndDate}).");
         }
 
+        var duplicateExam = await _context.Exams
+            .AnyAsync(e => e.Title == model.Title && e.CourseId == model.CourseId);
+        if (duplicateExam)
+            ModelState.AddModelError("Title",
+                "An exam with this title already exists in this course.");
+
         if (!ModelState.IsValid)
         {
             ViewBag.CourseName = course?.Name;
@@ -134,10 +140,15 @@ public class ExamController : Controller
             ModelState.AddModelError("Date",
                 $"Exam date cannot be after course end date ({existing.Course.EndDate}).");
 
+        var duplicateExam = await _context.Exams
+            .AnyAsync(e => e.Title == model.Title && e.CourseId == existing.CourseId && e.Id != id);
+        if (duplicateExam)
+            ModelState.AddModelError("Title",
+                "An exam with this title already exists in this course.");
+
         var maxExistingScore = existing.Results.Any()
             ? existing.Results.Max(r => r.Score)
             : 0;
-
         if (model.MaxScore < maxExistingScore)
             ModelState.AddModelError("MaxScore",
                 $"MaxScore cannot be less than existing scores. Highest score: {maxExistingScore}.");

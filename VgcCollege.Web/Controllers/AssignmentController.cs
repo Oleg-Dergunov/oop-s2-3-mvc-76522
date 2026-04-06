@@ -76,6 +76,12 @@ public class AssignmentController : Controller
                     $"Due date cannot be after course end date ({course.EndDate}).");
         }
 
+        var duplicateAssignment = await _context.Assignments
+            .AnyAsync(a => a.Title == model.Title && a.CourseId == model.CourseId);
+        if (duplicateAssignment)
+            ModelState.AddModelError("Title",
+                "An assignment with this title already exists in this course.");
+
         if (!ModelState.IsValid)
         {
             ViewBag.CourseName = course?.Name;
@@ -134,10 +140,15 @@ public class AssignmentController : Controller
             ModelState.AddModelError("DueDate",
                 $"Due date cannot be after course end date ({existing.Course.EndDate}).");
 
+        var duplicateAssignment = await _context.Assignments
+            .AnyAsync(a => a.Title == model.Title && a.CourseId == existing.CourseId && a.Id != id);
+        if (duplicateAssignment)
+            ModelState.AddModelError("Title",
+                "An assignment with this title already exists in this course.");
+
         var maxExistingScore = existing.Results.Any()
             ? existing.Results.Max(r => r.Score)
             : 0;
-
         if (model.MaxScore < maxExistingScore)
             ModelState.AddModelError("MaxScore",
                 $"MaxScore cannot be less than existing scores. Highest score: {maxExistingScore}.");
