@@ -2,42 +2,32 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
-<ul class="navbar-nav">
+<div class="d-flex align-items-center gap-3">
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
-            <span class="nav-link text-dark">Hello @User.Identity?.Name!</span>
-        </li>
+        <span><i>Hello @User.Identity?.Name!</i></span>
+        <span>|</span>
 
         @if (User.IsInRole("Admin"))
         {
-            <li class="nav-item">
-                <a class="nav-link text-dark" asp-controller="Admin" asp-action="MyProfile">My Profile</a>
-            </li>
+            <a class="as-link" asp-controller="Admin" asp-action="MyProfile">My Profile</a>
         }
         @if (User.IsInRole("Faculty"))
         {
-            <li class="nav-item">
-                <a class="nav-link text-dark" asp-controller="FacultyProfile" asp-action="MyProfile">My Profile</a>
-            </li>
+            <a class="as-link" asp-controller="FacultyProfile" asp-action="MyProfile">My Profile</a>
         }
         @if (User.IsInRole("Student"))
         {
-            <li class="nav-item">
-                <a class="nav-link text-dark" asp-controller="StudentProfile" asp-action="MyProfile">My Profile</a>
-            </li>
+            <a class="as-link" asp-controller="StudentProfile" asp-action="MyProfile">My Profile</a>
         }
 
-        <li class="nav-item">
-            <form method="post" asp-area="Identity" asp-page="/Account/Logout">
-                <button type="submit" class="btn btn-link">Logout</button>
-            </form>
-        </li>
+        <span>|</span>
+        <form method="post" asp-area="Identity" asp-page="/Account/Logout" class="m-0">
+            <button type="submit" class="as-link">Logout</button>
+        </form>
     }
     else
     {
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-        </li>
+        <a class="as-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
     }
-</ul>
+</div>
