@@ -63,9 +63,20 @@ public class ExamController : Controller
         ModelState.Remove("Course");
         ModelState.Remove("Results");
 
+        var course = await _context.Courses.FindAsync(model.CourseId);
+        if (course != null)
+        {
+            if (model.Date < course.StartDate)
+                ModelState.AddModelError("Date",
+                    $"Exam date cannot be before course start date ({course.StartDate}).");
+            if (model.Date > course.EndDate)
+                ModelState.AddModelError("Date",
+                    $"Exam date cannot be after course end date ({course.EndDate}).");
+        }
+
         if (!ModelState.IsValid)
         {
-            ViewBag.CourseName = (await _context.Courses.FindAsync(model.CourseId))?.Name;
+            ViewBag.CourseName = course?.Name;
             ViewBag.CourseId = model.CourseId;
             return View(model);
         }
@@ -104,23 +115,28 @@ public class ExamController : Controller
         ModelState.Remove("Course");
         ModelState.Remove("Results");
 
-        if (!ModelState.IsValid) return View(model);
-
         var existing = await _context.Exams
+            .Include(e => e.Course)
             .Include(e => e.Results)
             .FirstOrDefaultAsync(e => e.Id == id);
         if (existing == null) return NotFound();
+
+        if (model.Date < existing.Course.StartDate)
+            ModelState.AddModelError("Date",
+                $"Exam date cannot be before course start date ({existing.Course.StartDate}).");
+        if (model.Date > existing.Course.EndDate)
+            ModelState.AddModelError("Date",
+                $"Exam date cannot be after course end date ({existing.Course.EndDate}).");
 
         var maxExistingScore = existing.Results.Any()
             ? existing.Results.Max(r => r.Score)
             : 0;
 
         if (model.MaxScore < maxExistingScore)
-        {
             ModelState.AddModelError("MaxScore",
                 $"MaxScore cannot be less than existing scores. Highest score: {maxExistingScore}.");
-            return View(model);
-        }
+
+        if (!ModelState.IsValid) return View(model);
 
         existing.Title = model.Title;
         existing.Date = model.Date;

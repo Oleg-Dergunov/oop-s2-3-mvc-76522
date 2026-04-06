@@ -39,7 +39,8 @@ public class CourseController : Controller
             var student = await _context.StudentProfiles
                 .FirstOrDefaultAsync(s => s.IdentityUserId == user!.Id);
             query = query.Where(c => c.Enrolments
-                .Any(e => e.StudentProfileId == student!.Id));
+                .Any(e => e.StudentProfileId == student!.Id
+                       && e.Status == EnrolmentStatus.Active));
         }
 
         return View(await query.ToListAsync());
@@ -70,7 +71,8 @@ public class CourseController : Controller
             var student = await _context.StudentProfiles
                 .FirstOrDefaultAsync(s => s.IdentityUserId == user!.Id);
             var isEnrolled = course.Enrolments
-                .Any(e => e.StudentProfileId == student!.Id);
+                .Any(e => e.StudentProfileId == student!.Id
+                       && e.Status == EnrolmentStatus.Active);
             if (!isEnrolled) return Forbid();
         }
 
@@ -100,6 +102,9 @@ public class CourseController : Controller
     {
         ModelState.Remove("Branch");
         ModelState.Remove("FacultyProfile");
+
+        if (model.EndDate <= model.StartDate)
+            ModelState.AddModelError("EndDate", "End date must be after start date.");
 
         if (!ModelState.IsValid)
         {
@@ -138,6 +143,9 @@ public class CourseController : Controller
         ModelState.Remove("Branch");
         ModelState.Remove("FacultyProfile");
 
+        if (model.EndDate <= model.StartDate)
+            ModelState.AddModelError("EndDate", "End date must be after start date.");
+
         if (!ModelState.IsValid)
         {
             ViewBag.Branches = new SelectList(
@@ -157,6 +165,15 @@ public class CourseController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Enrol(int courseId, int studentProfileId)
     {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return NotFound();
+
+        if (DateOnly.FromDateTime(DateTime.Today) > course.EndDate)
+        {
+            TempData["Error"] = "Cannot enrol student — course has already ended.";
+            return RedirectToAction(nameof(Details), new { id = courseId });
+        }
+
         var alreadyEnrolled = await _context.CourseEnrolments
             .AnyAsync(e => e.StudentProfileId == studentProfileId
                         && e.CourseId == courseId);
@@ -173,6 +190,19 @@ public class CourseController : Controller
             await _context.SaveChangesAsync();
         }
 
+        return RedirectToAction(nameof(Details), new { id = courseId });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateEnrolmentStatus(int enrolmentId, EnrolmentStatus status, int courseId)
+    {
+        var enrolment = await _context.CourseEnrolments.FindAsync(enrolmentId);
+        if (enrolment == null) return NotFound();
+
+        enrolment.Status = status;
+        await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Details), new { id = courseId });
     }
 }

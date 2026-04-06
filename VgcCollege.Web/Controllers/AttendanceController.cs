@@ -37,6 +37,9 @@ public class AttendanceController : Controller
             if (enrolment.Course.FacultyProfileId != faculty!.Id) return Forbid();
         }
 
+        if (TempData["Error"] is string error)
+            TempData["Error"] = error;
+
         return View(enrolment);
     }
 
@@ -44,9 +47,33 @@ public class AttendanceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddRecord(int enrolmentId, int weekNumber, DateOnly date, AttendanceStatus status)
     {
+        var enrolment = await _context.CourseEnrolments
+            .Include(e => e.Course)
+            .FirstOrDefaultAsync(e => e.Id == enrolmentId);
+
+        if (enrolment == null) return NotFound();
+
         if (date > DateOnly.FromDateTime(DateTime.Today))
         {
             TempData["Error"] = "Cannot add attendance for a future date.";
+            return RedirectToAction(nameof(ByCourse), new { id = enrolmentId });
+        }
+
+        if (date < enrolment.Course.StartDate)
+        {
+            TempData["Error"] = $"Date cannot be before course start date ({enrolment.Course.StartDate}).";
+            return RedirectToAction(nameof(ByCourse), new { id = enrolmentId });
+        }
+
+        if (date > enrolment.Course.EndDate)
+        {
+            TempData["Error"] = $"Date cannot be after course end date ({enrolment.Course.EndDate}).";
+            return RedirectToAction(nameof(ByCourse), new { id = enrolmentId });
+        }
+
+        if (weekNumber < 1)
+        {
+            TempData["Error"] = "Week number must be at least 1.";
             return RedirectToAction(nameof(ByCourse), new { id = enrolmentId });
         }
 
@@ -64,6 +91,10 @@ public class AttendanceController : Controller
             });
             await _context.SaveChangesAsync();
         }
+        else
+        {
+            TempData["Error"] = $"Attendance record for week {weekNumber} already exists.";
+        }
 
         return RedirectToAction(nameof(ByCourse), new { id = enrolmentId });
     }
@@ -77,7 +108,6 @@ public class AttendanceController : Controller
 
         record.Status = status;
         await _context.SaveChangesAsync();
-
         return RedirectToAction(nameof(ByCourse), new { id = record.CourseEnrolmentId });
     }
 }

@@ -52,6 +52,8 @@ public class AssignmentController : Controller
 
         ViewBag.CourseName = course.Name;
         ViewBag.CourseId = courseId;
+        ViewBag.CourseStart = course.StartDate.ToString("yyyy-MM-dd");
+        ViewBag.CourseEnd = course.EndDate.ToString("yyyy-MM-dd");
         return View();
     }
 
@@ -63,10 +65,23 @@ public class AssignmentController : Controller
         ModelState.Remove("Course");
         ModelState.Remove("Results");
 
+        var course = await _context.Courses.FindAsync(model.CourseId);
+        if (course != null)
+        {
+            if (model.DueDate < course.StartDate)
+                ModelState.AddModelError("DueDate",
+                    $"Due date cannot be before course start date ({course.StartDate}).");
+            if (model.DueDate > course.EndDate)
+                ModelState.AddModelError("DueDate",
+                    $"Due date cannot be after course end date ({course.EndDate}).");
+        }
+
         if (!ModelState.IsValid)
         {
-            ViewBag.CourseName = (await _context.Courses.FindAsync(model.CourseId))?.Name;
+            ViewBag.CourseName = course?.Name;
             ViewBag.CourseId = model.CourseId;
+            ViewBag.CourseStart = course?.StartDate.ToString("yyyy-MM-dd");
+            ViewBag.CourseEnd = course?.EndDate.ToString("yyyy-MM-dd");
             return View(model);
         }
 
@@ -91,6 +106,8 @@ public class AssignmentController : Controller
             if (assignment.Course.FacultyProfileId != faculty!.Id) return Forbid();
         }
 
+        ViewBag.CourseStart = assignment.Course.StartDate.ToString("yyyy-MM-dd");
+        ViewBag.CourseEnd = assignment.Course.EndDate.ToString("yyyy-MM-dd");
         return View(assignment);
     }
 
@@ -104,21 +121,31 @@ public class AssignmentController : Controller
         ModelState.Remove("Course");
         ModelState.Remove("Results");
 
-        if (!ModelState.IsValid) return View(model);
-
         var existing = await _context.Assignments
+            .Include(a => a.Course)
             .Include(a => a.Results)
             .FirstOrDefaultAsync(a => a.Id == id);
         if (existing == null) return NotFound();
+
+        if (model.DueDate < existing.Course.StartDate)
+            ModelState.AddModelError("DueDate",
+                $"Due date cannot be before course start date ({existing.Course.StartDate}).");
+        if (model.DueDate > existing.Course.EndDate)
+            ModelState.AddModelError("DueDate",
+                $"Due date cannot be after course end date ({existing.Course.EndDate}).");
 
         var maxExistingScore = existing.Results.Any()
             ? existing.Results.Max(r => r.Score)
             : 0;
 
         if (model.MaxScore < maxExistingScore)
-        {
             ModelState.AddModelError("MaxScore",
                 $"MaxScore cannot be less than existing scores. Highest score: {maxExistingScore}.");
+
+        if (!ModelState.IsValid)
+        {
+            ViewBag.CourseStart = existing.Course.StartDate.ToString("yyyy-MM-dd");
+            ViewBag.CourseEnd = existing.Course.EndDate.ToString("yyyy-MM-dd");
             return View(model);
         }
 

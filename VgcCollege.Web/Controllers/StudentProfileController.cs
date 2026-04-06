@@ -64,6 +64,11 @@ public class StudentProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateStudentViewModel model)
     {
+        if (model.DateOfBirth > DateOnly.FromDateTime(DateTime.Today))
+            ModelState.AddModelError("DateOfBirth", "Date of birth cannot be in the future.");
+        else if (model.DateOfBirth > DateOnly.FromDateTime(DateTime.Today.AddYears(-16)))
+            ModelState.AddModelError("DateOfBirth", "Student must be at least 16 years old.");
+
         if (!ModelState.IsValid) return View(model);
 
         var existingUser = await _userManager.FindByEmailAsync(model.Email);
@@ -124,6 +129,12 @@ public class StudentProfileController : Controller
 
         ModelState.Remove("StudentNumber");
         ModelState.Remove("IdentityUserId");
+        ModelState.Remove("Email");
+
+        if (model.DateOfBirth > DateOnly.FromDateTime(DateTime.Today))
+            ModelState.AddModelError("DateOfBirth", "Date of birth cannot be in the future.");
+        else if (model.DateOfBirth > DateOnly.FromDateTime(DateTime.Today.AddYears(-16)))
+            ModelState.AddModelError("DateOfBirth", "Student must be at least 16 years old.");
 
         if (!ModelState.IsValid) return View(model);
 
@@ -144,7 +155,8 @@ public class StudentProfileController : Controller
     {
         var user = await _userManager.GetUserAsync(User);
         var student = await _context.StudentProfiles
-            .Include(s => s.Enrolments)
+            .Include(s => s.Enrolments
+                .Where(e => e.Status == EnrolmentStatus.Active))
                 .ThenInclude(e => e.Course)
             .FirstOrDefaultAsync(s => s.IdentityUserId == user!.Id);
 
