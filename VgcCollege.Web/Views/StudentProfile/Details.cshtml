@@ -18,11 +18,12 @@
     <dt>@Html.DisplayNameFor(m => m.Phone)</dt>
     <dd>@Html.DisplayFor(m => m.Phone)</dd>
 
-    <dt>@Html.DisplayNameFor(m => m.Address)</dt>
-    <dd>@Html.DisplayFor(m => m.Address)</dd>
 
     @if (User.IsInRole("Admin"))
-    {
+        {
+        <dt>@Html.DisplayNameFor(m => m.Address)</dt>
+        <dd>@Html.DisplayFor(m => m.Address)</dd>
+
         <dt>@Html.DisplayNameFor(m => m.DateOfBirth)</dt>
         <dd>@Html.DisplayFor(m => m.DateOfBirth)</dd>
     }

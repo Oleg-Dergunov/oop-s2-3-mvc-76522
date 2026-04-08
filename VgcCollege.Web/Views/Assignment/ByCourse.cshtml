@@ -2,15 +2,19 @@
 
 @{
     ViewData["Title"] = "Assignments";
+    var studentProfileId = ViewBag.StudentProfileId as int?;
 }
 
 <h1>Assignments</h1>
 <h4>@ViewBag.CourseName</h4>
 <hr />
 
-<p>
-    <a asp-action="Create" asp-route-courseId="@ViewBag.CourseId">Create New</a>
-</p>
+@if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
+{
+    <p>
+        <a asp-action="Create" asp-route-courseId="@ViewBag.CourseId">Create New</a>
+    </p>
+}
 
 <table>
     <thead>
@@ -18,27 +22,48 @@
             <th>@Html.DisplayNameFor(m => m.Title)</th>
             <th>@Html.DisplayNameFor(m => m.MaxScore)</th>
             <th>@Html.DisplayNameFor(m => m.DueDate)</th>
+            @if (User.IsInRole("Student"))
+            {
+                <th>My Score</th>
+                <th>Feedback</th>
+            }
             <th></th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
+            var myResult = studentProfileId.HasValue
+            ? item.Results.FirstOrDefault(r => r.StudentProfileId == studentProfileId)
+            : null;
             <tr>
                 <td>@Html.DisplayFor(m => item.Title)</td>
                 <td>@Html.DisplayFor(m => item.MaxScore)</td>
                 <td>@Html.DisplayFor(m => item.DueDate)</td>
-                <td>
-                    <a asp-action="Results" asp-route-assignmentId="@item.Id">Gradebook</a>
-                    <span> | </span>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                </td>
+                @if (User.IsInRole("Student"))
+                {
+                    <td>@(myResult != null ? myResult.Score.ToString() : "-")</td>
+                    <td>@(myResult?.Feedback ?? "-")</td>
+                }
+                @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
+                {
+                    <td>
+                        <a asp-action="Results" asp-route-assignmentId="@item.Id">Gradebook</a>
+                        <span> | </span>
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    </td>
+                }
+                else
+                {
+                    <td></td>
+                }
             </tr>
         }
     </tbody>
 </table>
 
 <br />
+
 <div>
     <a asp-controller="Course" asp-action="Details" asp-route-id="@ViewBag.CourseId">Back to Course</a>
 </div>

@@ -33,12 +33,25 @@
     <dd>@Html.DisplayFor(m => m.EndDate)</dd>
 </dl>
 
+<p>
+    <a asp-controller="Assignment" asp-action="ByCourse"
+       asp-route-courseId="@Model.Id">Assignments</a>
+    <span> | </span>
+    <a asp-controller="Exam" asp-action="ByCourse"
+       asp-route-courseId="@Model.Id">Exams</a>
+</p>
+
 @if (User.IsInRole("Admin") || User.IsInRole("Faculty"))
 {
     <h4>Enrolled Students</h4>
 
     @if (User.IsInRole("Admin"))
     {
+        @if (ViewBag.Error != null)
+        {
+            <p class="text-danger">@ViewBag.Error</p>
+        }
+
         <form asp-action="Enrol" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" name="courseId" value="@Model.Id" />
@@ -95,12 +108,6 @@
                         <span> | </span>
                         <a asp-controller="Attendance" asp-action="ByCourse"
                            asp-route-id="@enrolment.Id">Attendance</a>
-                        <span> | </span>
-                        <a asp-controller="Assignment" asp-action="ByCourse"
-                           asp-route-courseId="@Model.Id">Assignments</a>
-                        <span> | </span>
-                        <a asp-controller="Exam" asp-action="ByCourse"
-                           asp-route-courseId="@Model.Id">Exams</a>
                     </td>
                 </tr>
             }

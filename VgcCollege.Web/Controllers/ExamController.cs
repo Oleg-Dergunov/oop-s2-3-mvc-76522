@@ -20,7 +20,7 @@ public class ExamController : Controller
         _userManager = userManager;
     }
 
-    [Authorize(Roles = "Admin,Faculty")]
+    [Authorize(Roles = "Admin,Faculty,Student")]
     public async Task<IActionResult> ByCourse(int courseId)
     {
         var course = await _context.Courses
@@ -37,6 +37,20 @@ public class ExamController : Controller
             var faculty = await _context.FacultyProfiles
                 .FirstOrDefaultAsync(f => f.IdentityUserId == user!.Id);
             if (course.FacultyProfileId != faculty!.Id) return Forbid();
+        }
+
+        if (User.IsInRole("Student"))
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var student = await _context.StudentProfiles
+                .FirstOrDefaultAsync(s => s.IdentityUserId == user!.Id);
+            var isEnrolled = await _context.CourseEnrolments
+                .AnyAsync(e => e.StudentProfileId == student!.Id
+                            && e.CourseId == courseId
+                            && e.Status == EnrolmentStatus.Active);
+            if (!isEnrolled) return Forbid();
+
+            ViewBag.StudentProfileId = student!.Id;
         }
 
         ViewBag.CourseName = course.Name;
